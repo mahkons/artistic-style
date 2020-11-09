@@ -13,4 +13,4 @@ create and activate conda env (optional)
     conda activate artistic-style
 
 # Launch
-    #TODO
+    python transfer.py --content-image="PATH_TO_CONTENT" --style-image="PATH_TO_STYLE" --output-image="PATH_TO_OUTPUT"
