@@ -22,11 +22,11 @@ def create_parser():
 
 def load_model(model_str):
     if model_str == "vgg11":
-        return torchvision.models.vgg19(pretrained=True)
+        return torchvision.models.vgg11(pretrained=True)
     elif model_str == "vgg13":
-        return torchvision.models.vgg19(pretrained=True)
+        return torchvision.models.vgg13(pretrained=True)
     elif model_str == "vgg16":
-        return torchvision.models.vgg19(pretrained=True)
+        return torchvision.models.vgg16(pretrained=True)
     elif model_str == "vgg19":
         return torchvision.models.vgg19(pretrained=True)
     else:
@@ -87,8 +87,18 @@ def extract_conv_features(model, image):
     return features
 
 
-def choose_features(features):
-    features = filter(lambda f: f[1] == 1, features) # take first convolution from every layer
+def detach_all(tensors):
+    return [tensor.detach() for tensor in tensors]
+
+
+def choose_content_features(features):
+    features = filter(lambda f: f[0] == 4 and f[1] == 1, features) # take first convolution from every block between max_pools
+    features = map(lambda f: f[2], features)
+    return list(features)
+
+
+def choose_style_features(features):
+    features = filter(lambda f: f[1] == 1, features) # take first convolution from every block between max_pools
     features = map(lambda f: f[2], features)
     return list(features)
 
@@ -97,16 +107,17 @@ def get_gram_matrix(image):
     image = image.reshape(image.shape[0], -1)
     return (image @ image.T) / image.shape[1] ** 2
 
-def calc_loss(model, image, content_image, style_image):
-    image_features = choose_features(extract_conv_features(model, image))
-    content_image_features = choose_features(extract_conv_features(model, content_image))
-    style_image_features = choose_features(extract_conv_features(model, style_image))
+def calc_loss(model, image, content_image_features, style_image_features):
+    image_features = extract_conv_features(model, image)
+    new_content_features = choose_content_features(image_features)
+    new_style_features = choose_style_features(image_features)
 
     content_loss, style_loss = 0, 0
 
-    for image_f, content_image_f, style_image_f in zip(image_features, content_image_features, style_image_features):
+    for image_f, content_image_f in zip(new_content_features, content_image_features):
         content_loss += F.mse_loss(image_f, content_image_f)
 
+    for image_f, style_image_f in zip(new_style_features, style_image_features):
         gram_image = get_gram_matrix(image_f)
         gram_style_image = get_gram_matrix(style_image_f)
         style_loss += F.mse_loss(gram_image, gram_style_image)
@@ -114,18 +125,21 @@ def calc_loss(model, image, content_image, style_image):
     return content_loss, style_loss
 
 
-ITER = 1000
+ITER = 3000
 LR = 1e-1
 CONTENT_COEFF = 1
-STYLE_COEFF = 0
+STYLE_COEFF = 10000
 
 def transfer(model, content_image, style_image, device):
     image = torch.rand(content_image.shape, requires_grad=True, device=device)
     optimizer = torch.optim.Adam((image,), lr=LR)
 
+    content_image_features = detach_all(choose_content_features(extract_conv_features(model, content_image)))
+    style_image_features = detach_all(choose_style_features(extract_conv_features(model, style_image)))
+
     pbar = tqdm(range(ITER))
     for i in pbar:
-        content_loss, style_loss = calc_loss(model, image, content_image, style_image)
+        content_loss, style_loss = calc_loss(model, image, content_image_features, style_image_features)
         pbar.write("content_loss: {}, style_loss: {}".format(content_loss * CONTENT_COEFF, style_loss * STYLE_COEFF))
         loss = content_loss * CONTENT_COEFF + style_loss * STYLE_COEFF
         with torch.no_grad():
