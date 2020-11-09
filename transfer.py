@@ -47,9 +47,9 @@ def load_image(image_path, to_size, device):
     return image
 
 
+# set of images
 def imshow(image):
     image = (image * _NORMALIZE_STD[:, None, None].to(image.device)) + _NORMALIZE_MEAN[:, None, None].to(image.device)
-    print(image)
     image.clamp_(0, 1)
     image = torchvision.transforms.ToPILImage()(image.cpu())
     plt.imshow(image)
@@ -114,7 +114,7 @@ def calc_loss(model, image, content_image, style_image):
     return content_loss, style_loss
 
 
-ITER = 100
+ITER = 1000
 LR = 1e-1
 CONTENT_COEFF = 1
 STYLE_COEFF = 0

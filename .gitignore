@@ -1,6 +1,9 @@
 # python
 __pycache__
 
+# tmp image
+generated/tmp.*
+
 # datasets
 data/
 
