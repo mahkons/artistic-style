@@ -10,3 +10,5 @@ dependencies:
   - pytorch=1.6.0
   - torchvision=0.7
   - matplotlib=3.3.2
+  - pillow=7.0.0
+  - tqdm=4.46.0
