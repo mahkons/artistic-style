@@ -13,9 +13,9 @@ DEFAULT_IMAGE_SIZE = (224, 224)
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="vgg19", required=False, choices=["vgg11", "vgg13", "vgg16", "vgg19"])
-    parser.add_argument("--content-image", type=str, default="./data/train.png", required=False)
-    parser.add_argument("--style-image", type=str, default="./data/starry-night.jpg", required=False)
-    parser.add_argument("--output-image", type=str, default="./generated/tmp.jpg", required=False)
+    parser.add_argument("--content-image", type=str, default="./data/ekb.jpg", required=False)
+    parser.add_argument("--style-image", type=str, default="./data/scream.jpg", required=False)
+    parser.add_argument("--output-image", type=str, default="./generated/scream_ekb_1.jpg", required=False)
     parser.add_argument("--device", type=str, default="cpu", required=False, choices=["cpu", "cuda"])
     return parser 
 
@@ -105,7 +105,7 @@ def choose_style_features(features):
 
 def get_gram_matrix(image):
     image = image.reshape(image.shape[0], -1)
-    return (image @ image.T) / image.shape[1] ** 2
+    return (image @ image.T) / image.shape[1]
 
 def calc_loss(model, image, content_image_features, style_image_features):
     image_features = extract_conv_features(model, image)
@@ -125,10 +125,10 @@ def calc_loss(model, image, content_image_features, style_image_features):
     return content_loss, style_loss
 
 
-ITER = 3000
+ITER = 1000
 LR = 1e-1
 CONTENT_COEFF = 1
-STYLE_COEFF = 10000
+STYLE_COEFF = 1
 
 def transfer(model, content_image, style_image, device):
     image = torch.rand(content_image.shape, requires_grad=True, device=device)
@@ -159,5 +159,6 @@ if __name__ == "__main__":
 
     new_image = transfer(model, content_image, style_image, device)
 
-    imshow(torchvision.utils.make_grid([style_image, content_image, new_image]))
-    imsave(new_image, args.output_image)
+    im_grid = torchvision.utils.make_grid([style_image, content_image, new_image])
+    imshow(im_grid)
+    imsave(im_grid, args.output_image)
