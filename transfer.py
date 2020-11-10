@@ -15,7 +15,7 @@ def create_parser():
     parser.add_argument("--model", type=str, default="vgg19", required=False, choices=["vgg11", "vgg13", "vgg16", "vgg19"])
     parser.add_argument("--content-image", type=str, default="./data/ekb.jpg", required=False)
     parser.add_argument("--style-image", type=str, default="./data/scream.jpg", required=False)
-    parser.add_argument("--output-image", type=str, default="./generated/scream_ekb_1.jpg", required=False)
+    parser.add_argument("--output-image", type=str, default="./generated/scream_ekb_1_vgg11.jpg", required=False)
     parser.add_argument("--device", type=str, default="cpu", required=False, choices=["cpu", "cuda"])
     return parser 
 
@@ -47,7 +47,6 @@ def load_image(image_path, to_size, device):
     return image
 
 
-# set of images
 def imshow(image):
     image = (image * _NORMALIZE_STD[:, None, None].to(image.device)) + _NORMALIZE_MEAN[:, None, None].to(image.device)
     image.clamp_(0, 1)
@@ -92,13 +91,13 @@ def detach_all(tensors):
 
 
 def choose_content_features(features):
-    features = filter(lambda f: f[0] == 4 and f[1] == 1, features) # take first convolution from every block between max_pools
+    features = filter(lambda f: f[0] == 4 and f[1] == 1, features) # take first convolution from 4th block
     features = map(lambda f: f[2], features)
     return list(features)
 
 
 def choose_style_features(features):
-    features = filter(lambda f: f[1] == 1, features) # take first convolution from every block between max_pools
+    features = filter(lambda f: f[1] == 1, features) # take first convolution from every block
     features = map(lambda f: f[2], features)
     return list(features)
 

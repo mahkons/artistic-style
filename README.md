@@ -14,3 +14,10 @@ create and activate conda env (optional)
 
 # Launch
     python transfer.py --content-image="PATH_TO_CONTENT" --style-image="PATH_TO_STYLE" --output-image="PATH_TO_OUTPUT"
+
+# Results
+    Van Gogh's Starry Night to Yekaterinburg City Administration building  
+    [night_to_ekb](generated/night_ekb_1.jpg)  
+
+    Edvard Munch's The Scream to Yekaterinburg City Administration building  
+    [scream_to_ekb](generated/scream_ekb_1.jpg)  
